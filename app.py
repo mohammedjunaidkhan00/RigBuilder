@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, url_for, redirect, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from huggingface_hub import hf_hub_download
 import os
 import joblib
 import re
@@ -12,9 +13,28 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 
+# Hugging Face repository
+HF_REPO_ID = "mohammedjunaidkhan/rigbuilder-models"
+
+
+# Download models from Hugging Face
+cat_model_path = hf_hub_download(
+    repo_id=HF_REPO_ID,
+    filename="cat_model.pkl"
+)
+
+random_forest_model_path = hf_hub_download(
+    repo_id=HF_REPO_ID,
+    filename="random_forest_model.pkl"
+)
+
+# Load ML models
+cat_model = joblib.load(cat_model_path)
+random_forest_model = joblib.load(random_forest_model_path)
+
 # LOAD ML MODELS
-cat_model = joblib.load(os.path.join(MODEL_DIR, "cat_model.pkl"))
-random_forest_model = joblib.load(os.path.join(MODEL_DIR, "random_forest_model.pkl"))
+# cat_model = joblib.load(os.path.join(MODEL_DIR, "cat_model.pkl"))
+# random_forest_model = joblib.load(os.path.join(MODEL_DIR, "random_forest_model.pkl"))
 
 # LOAD PREPROCESSING FILES
 feature_columns = joblib.load(os.path.join(MODEL_DIR, "feature_columns.pkl"))
