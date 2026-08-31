@@ -23,14 +23,14 @@ cat_model_path = hf_hub_download(
     filename="cat_model.pkl"
 )
 
-random_forest_model_path = hf_hub_download(
-    repo_id=HF_REPO_ID,
-    filename="random_forest_model.pkl"
-)
+# random_forest_model_path = hf_hub_download(
+#     repo_id=HF_REPO_ID,
+#     filename="random_forest_model.pkl"
+# )
 
 # Load ML models
 cat_model = joblib.load(cat_model_path)
-random_forest_model = joblib.load(random_forest_model_path)
+# random_forest_model = joblib.load(random_forest_model_path)
 
 # LOAD ML MODELS
 # cat_model = joblib.load(os.path.join(MODEL_DIR, "cat_model.pkl"))
@@ -833,16 +833,16 @@ def recommendation():
         #     upgrade_path=upgrade_path,
         #     model=cat_model
         # )
-        result_rf = recommend_pc(
-            budget=budget,
-            used_parts=used_parts,
-            usage_scenario=usage_scenario,
-            colour_theme=colour_theme,
-            monitor_required=monitor_required,
-            monitor_size=monitor_size,
-            monitor_resolution=monitor_resolution,
-            build_type=build_type,
-            upgrade_path=upgrade_path, model=random_forest_model)
+        # result_rf = recommend_pc(
+        #     budget=budget,
+        #     used_parts=used_parts,
+        #     usage_scenario=usage_scenario,
+        #     colour_theme=colour_theme,
+        #     monitor_required=monitor_required,
+        #     monitor_size=monitor_size,
+        #     monitor_resolution=monitor_resolution,
+        #     build_type=build_type,
+        #     upgrade_path=upgrade_path, model=random_forest_model)
 
         
         result_cb = recommend_pc(
@@ -859,10 +859,10 @@ def recommendation():
        
 
         # Add budget information
-        result_rf["user_budget"] = budget
-        result_rf["remaining_budget"] = (
-            budget - int(result_rf["total_price"])
-        )
+        # result_rf["user_budget"] = budget
+        # result_rf["remaining_budget"] = (
+        #     budget - int(result_rf["total_price"])
+        # )
         result_cb["user_budget"] = budget
         result_cb["remaining_budget"] = (
             budget - int(result_cb["total_price"]))
@@ -878,7 +878,7 @@ def recommendation():
         # print(result)
 
     # return render_template("recommendation.html", result=result)
-    return render_template("recommendation.html", result_rf=result_rf, result_cb=result_cb)
+    return render_template("recommendation.html", result_cb=result_cb)
 
 
 
