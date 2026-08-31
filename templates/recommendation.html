@@ -1,0 +1,1149 @@
+{% extends "base.html" %}
+
+{% block title %}PC Builder — RigBuilder{% endblock %}
+
+{% block content %}
+
+<section class="builder-page">
+
+    <div class="builder-header">
+
+        <h1>Build Your Perfect PC</h1>
+
+        <p>
+            Tell us your specs preferences and budget limitations.
+            RigBuilder's algorithm will assemble the optimal parts list
+            for your setup.
+        </p>
+
+    </div>
+
+
+    <!-- Recommendation Form -->
+    <form class="builder-form" method="POST" action="{{ url_for('recommendation') }}">
+
+        <!-- Budget -->
+        <div class="form-group">
+
+            <label for="budget">
+                Budget (₹)
+            </label>
+
+            <input type="number" id="budget" name="budget" placeholder="e.g. 50000" min="10000" step="500" required>
+
+        </div>
+
+
+        <!-- Used Parts -->
+        <div class="form-group">
+
+            <label for="used_parts">
+                Are you okay with used parts?
+            </label>
+
+            <select id="used_parts" name="used_parts">
+
+                <option value="1">
+                    Yes, include verified used parts
+                </option>
+
+                <option value="0" selected>
+                    No, only brand new parts
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Usage Scenario -->
+        <div class="form-group">
+
+            <label for="usage_scenario">
+                Primary Use Case
+            </label>
+
+            <select id="usage_scenario" name="usage_scenario">
+
+                <option value="High-End Gaming + Mid Workstation">
+                    High-End Gaming + Workstation
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Colour Theme -->
+        <div class="form-group">
+
+            <label for="colour_theme">
+                Preferred Theme Color
+            </label>
+
+            <select id="colour_theme" name="colour_theme">
+
+                <option value="none">
+                    No Preference
+                </option>
+
+                <option value="black">
+                    Black
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Monitor Required -->
+        <div class="form-group">
+
+            <label for="monitor_required">
+                Do you need a monitor included?
+            </label>
+
+            <select id="monitor_required" name="monitor_required">
+
+                <option value="1">
+                    Yes
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Monitor Size -->
+        <div class="form-group">
+
+            <label for="monitor_size">
+                Monitor Size (Inches)
+            </label>
+
+            <select id="monitor_size" name="monitor_size">
+
+                <option value="19">
+                    19 inch
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Monitor Resolution -->
+        <div class="form-group">
+
+            <label for="monitor_resolution">
+                Monitor Resolution
+            </label>
+
+            <select id="monitor_resolution" name="monitor_resolution">
+
+                <option value="4K">
+                    4K
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Build Type -->
+        <div class="form-group">
+
+            <label for="build_type">
+                Build Type Preference
+            </label>
+
+            <select id="build_type" name="build_type">
+
+                <option value="normal" selected>
+                    Standard
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Upgrade Path -->
+        <div class="form-group">
+
+            <label for="upgrade_path">
+                Future Upgrade Priority
+            </label>
+
+            <select id="upgrade_path" name="upgrade_path">
+
+                <option value="medium" selected>
+                    Medium Priority
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Submit Button -->
+        <div class="builder-submit">
+
+            <button type="submit">
+                Recommend My PC
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+
+<!-- {% if result_rf and result_cb %}
+<h2>Random Forest Result</h2>
+<p>
+    Total Price:
+    ₹{{ "{:,}".format(result_rf["total_price"]) }}</p>
+<h2>CatBoost Result</h2>
+<p>
+    Total Price:
+    ₹{{ "{:,}".format(result_cb["total_price"]) }}</p>
+{% endif %} -->
+
+
+
+{% if result_rf and result_cb %}
+
+<section class="result-section" id="results">
+
+
+    <!-- ================================================= -->
+    <!-- RANDOM FOREST BUILD -->
+    <!-- ================================================= -->
+
+    <div class="result-summary">
+
+        <h2>
+            Random Forest Recommendation
+        </h2>
+
+        <div class="summary-grid">
+
+            <div>
+                <p class="summary-label">
+                    Total Build Price
+                </p>
+
+                <p class="total-price">
+                    ₹{{ "{:,}".format(result_rf["total_price"]) }}
+                </p>
+            </div>
+
+
+            <div>
+                <p class="summary-label">
+                    Your Budget
+                </p>
+
+                <p class="budget-price">
+                    ₹{{ "{:,}".format(result_rf["user_budget"]) }}
+                </p>
+            </div>
+
+
+            <div>
+                <p class="summary-label">
+                    Remaining Budget
+                </p>
+
+                <p class="remaining-budget">
+                    ₹{{ "{:,}".format(result_rf["remaining_budget"]) }}
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- CPU -->
+
+    <article class="component-card">
+
+        <h3>CPU</h3>
+
+        <p class="component-name">
+            {{ result_rf["components"]["CPU"]["cpu_model"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_rf["components"]["CPU"]["manufacturer"] }}
+        </p>
+
+        <p>
+            <strong>Cores:</strong>
+            {{ result_rf["components"]["CPU"]["cores"] }}
+        </p>
+
+        <p>
+            <strong>Threads:</strong>
+            {{ result_rf["components"]["CPU"]["thread"] }}
+        </p>
+
+        <p>
+            <strong>Base Clock:</strong>
+            {{ result_rf["components"]["CPU"]["base_clock"] }} GHz
+        </p>
+
+        <p>
+            <strong>Boost Clock:</strong>
+            {{ result_rf["components"]["CPU"]["boost_clock"] }} GHz
+        </p>
+
+        <p>
+            <strong>Socket:</strong>
+            {{ result_rf["components"]["CPU"]["socket_no"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            {{ result_rf["components"]["CPU"]["price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- GPU -->
+
+    <article class="component-card">
+
+        <h3>GPU</h3>
+
+        <p class="component-name">
+            {{ result_rf["components"]["GPU"]["gpu name"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_rf["components"]["GPU"]["brand"] }}
+        </p>
+
+        <p>
+            <strong>VRAM:</strong>
+            {{ result_rf["components"]["GPU"][" vram"] }}
+        </p>
+
+        <p>
+            <strong>Memory Bus:</strong>
+            {{ result_rf["components"]["GPU"]["Memory Bus"] }}
+        </p>
+
+        <p>
+            <strong>GPU TDP:</strong>
+            {{ result_rf["components"]["GPU"]["gpu tdp"] }}
+        </p>
+
+        <p>
+            <strong>PCIe Version:</strong>
+            {{ result_rf["components"]["GPU"]["pcie version"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_rf["components"]["GPU"]["gpu price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- Motherboard -->
+
+    <article class="component-card">
+
+        <h3>Mother Board</h3>
+
+        <p class="component-name">
+            {{ result_rf["components"]["Mother Board"]["motherboard_name"] }}
+        </p>
+
+        <p>
+            <strong>Socket:</strong>
+            {{ result_rf["components"]["Mother Board"]["socket_no"] }}
+        </p>
+
+        <p>
+            <strong>Chipset:</strong>
+            {{ result_rf["components"]["Mother Board"]["chipset"] }}
+        </p>
+
+        <p>
+            <strong>PCIe Version:</strong>
+            {{ result_rf["components"]["Mother Board"]["pcie_version"] }}
+        </p>
+
+        <p>
+            <strong>RAM Type:</strong>
+            {{ result_rf["components"]["Mother Board"]["ram_type"] }}
+        </p>
+
+        <p>
+            <strong>Form Factor:</strong>
+            {{ result_rf["components"]["Mother Board"]["form_factor"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_rf["components"]["Mother Board"]["price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- CPU Cooler -->
+
+    <article class="component-card">
+
+        <h3>CPU Cooler</h3>
+
+        <p class="component-name">
+            {{ result_rf["components"]["Cooler"]["Cooler Name"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_rf["components"]["Cooler"]["Cooler Brand"] }}
+        </p>
+
+        <p>
+            <strong>Type:</strong>
+            {{ result_rf["components"]["Cooler"]["Cooler Type"] }}
+        </p>
+
+        <p>
+            <strong>Height:</strong>
+            {{ result_rf["components"]["Cooler"]["Cooler Height"] }}
+        </p>
+
+        <p>
+            <strong>Max Rated TDP:</strong>
+            {{ result_rf["components"]["Cooler"]["Max Rated TDP"] }}
+        </p>
+
+        <p>
+            <strong>Compatible Socket:</strong>
+            {{ result_rf["components"]["Cooler"]["Compatible Socket"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_rf["components"]["Cooler"]["Price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- PSU -->
+
+    <article class="component-card">
+
+        <h3>PSU</h3>
+
+        <p class="component-name">
+            {{ result_rf["components"]["PSU"]["Brand & Model"] }}
+        </p>
+
+        <p>
+            <strong>Wattage:</strong>
+            {{ result_rf["components"]["PSU"]["Wattage (W)"] }}W
+        </p>
+
+        <p>
+            <strong>Certification:</strong>
+            {{ result_rf["components"]["PSU"]["Certification"] }}
+        </p>
+
+        <p>
+            <strong>Modularity:</strong>
+            {{ result_rf["components"]["PSU"]["Modularity"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_rf["components"]["PSU"]["Approx Price (INR)"] }}
+        </p>
+
+    </article>
+
+
+    <!-- Storage -->
+
+    <article class="component-card">
+
+        <h3>Storage</h3>
+
+        <p class="component-name">
+            {{ result_rf["components"]["Storage"]["model_name"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_rf["components"]["Storage"]["company_brand"] }}
+        </p>
+
+        <p>
+            <strong>Type:</strong>
+            {{ result_rf["components"]["Storage"]["storage_type"] }}
+        </p>
+
+        <p>
+            <strong>Capacity:</strong>
+            {{ result_rf["components"]["Storage"]["storage_capacity"] }}
+        </p>
+
+        <p>
+            <strong>Read Speed:</strong>
+            {{ result_rf["components"]["Storage"]["read_speed_MBs"] }} MB/s
+        </p>
+
+        <p>
+            <strong>Write Speed:</strong>
+            {{ result_rf["components"]["Storage"]["write_speed_MBs"] }} MB/s
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_rf["components"]["Storage"]["price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- RAM -->
+
+    <article class="component-card">
+
+        <h3>RAM</h3>
+
+        <p class="component-name">
+            {{ result_rf["components"]["RAM"]["model_name"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_rf["components"]["RAM"]["company_brand"] }}
+        </p>
+
+        <p>
+            <strong>Generation:</strong>
+            {{ result_rf["components"]["RAM"]["ram_generation"] }}
+        </p>
+
+        <p>
+            <strong>Capacity:</strong>
+            {{ result_rf["components"]["RAM"]["capacity"] }}
+        </p>
+
+        <p>
+            <strong>Configuration:</strong>
+            {{ result_rf["components"]["RAM"]["kit_configuration"] }}
+        </p>
+
+        <p>
+            <strong>Speed:</strong>
+            {{ result_rf["components"]["RAM"]["boost_frequency_mhz"] }} MHz
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_rf["components"]["RAM"]["approx_price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- Cabinet -->
+
+    <article class="component-card">
+
+        <h3>Cabinet</h3>
+
+        <p class="component-name">
+            {{ result_rf["components"]["Cabinet"]["Cabinet Name"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_rf["components"]["Cabinet"]["Brand"] }}
+        </p>
+
+        <p>
+            <strong>Form Factor:</strong>
+            {{ result_rf["components"]["Cabinet"]["Cabinet Form Factor"] }}
+        </p>
+
+        <p>
+            <strong>Max GPU Length:</strong>
+            {{ result_rf["components"]["Cabinet"]["Max GPU Length"] }}
+        </p>
+
+        <p>
+            <strong>Max Cooler Height:</strong>
+            {{ result_rf["components"]["Cabinet"]["Max Cooler Height"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_rf["components"]["Cabinet"]["Price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- Monitor -->
+
+    <article class="component-card">
+
+        <h3>Monitor</h3>
+
+        <p class="component-name">
+            {{ result_rf["components"]["Monitor"]["Brand & Model"] }}
+        </p>
+
+        <p>
+            <strong>Resolution:</strong>
+            {{ result_rf["components"]["Monitor"]["Resolution"] }}
+        </p>
+
+        <p>
+            <strong>Refresh Rate:</strong>
+            {{ result_rf["components"]["Monitor"]["Refresh Rate"] }}
+        </p>
+
+        <p>
+            <strong>Screen Size:</strong>
+            {{ result_rf["components"]["Monitor"]["Screen Size"] }}
+        </p>
+
+        <p>
+            <strong>Response Time:</strong>
+            {{ result_rf["components"]["Monitor"]["Response Time"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_rf["components"]["Monitor"]["Approx Price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- Random Forest Add to Cart -->
+
+    <div class="result-actions">
+
+        <form method="POST" action="{{ url_for('add_to_cart') }}">
+
+            <input type="hidden" name="cpu_id" value="{{ result_rf['components']['CPU']['cpu_id'] }}">
+
+            <input type="hidden" name="gpu_id" value="{{ result_rf['components']['GPU']['gpu id'] }}">
+
+            <input type="hidden" name="motherboard_id"
+                value="{{ result_rf['components']['Mother Board']['model_id'] }}">
+
+            <input type="hidden" name="cooler_id" value="{{ result_rf['components']['Cooler']['Cooler ID'] }}">
+
+            <input type="hidden" name="psu_id" value="{{ result_rf['components']['PSU']['PSU ID'] }}">
+
+            <input type="hidden" name="storage_id" value="{{ result_rf['components']['Storage']['storage_id'] }}">
+
+            <input type="hidden" name="ram_id" value="{{ result_rf['components']['RAM']['ram_id'] }}">
+
+            <input type="hidden" name="cabinet_id" value="{{ result_rf['components']['Cabinet']['Cabinet ID'] }}">
+
+            <input type="hidden" name="monitor_id" value="{{ result_rf['components']['Monitor']['Monitor ID'] }}">
+
+            <input type="hidden" name="total_price" value="{{ result_rf['total_price'] }}">
+
+            <button type="submit" class="add-to-cart-button">
+                🛒 Add Random Forest Build to Cart
+            </button>
+
+        </form>
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- CATBOOST BUILD -->
+    <!-- ================================================= -->
+
+    <div class="result-summary">
+
+        <h2>
+            CatBoost Recommendation
+        </h2>
+
+        <div class="summary-grid">
+
+            <div>
+                <p class="summary-label">
+                    Total Build Price
+                </p>
+
+                <p class="total-price">
+                    ₹{{ "{:,}".format(result_cb["total_price"]) }}
+                </p>
+            </div>
+
+
+            <div>
+                <p class="summary-label">
+                    Your Budget
+                </p>
+
+                <p class="budget-price">
+                    ₹{{ "{:,}".format(result_cb["user_budget"]) }}
+                </p>
+            </div>
+
+
+            <div>
+                <p class="summary-label">
+                    Remaining Budget
+                </p>
+
+                <p class="remaining-budget">
+                    ₹{{ "{:,}".format(result_cb["remaining_budget"]) }}
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- CPU -->
+
+    <article class="component-card">
+
+        <h3>CPU</h3>
+
+        <p class="component-name">
+            {{ result_cb["components"]["CPU"]["cpu_model"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_cb["components"]["CPU"]["manufacturer"] }}
+        </p>
+
+        <p>
+            <strong>Cores:</strong>
+            {{ result_cb["components"]["CPU"]["cores"] }}
+        </p>
+
+        <p>
+            <strong>Threads:</strong>
+            {{ result_cb["components"]["CPU"]["thread"] }}
+        </p>
+
+        <p>
+            <strong>Base Clock:</strong>
+            {{ result_cb["components"]["CPU"]["base_clock"] }} GHz
+        </p>
+
+        <p>
+            <strong>Boost Clock:</strong>
+            {{ result_cb["components"]["CPU"]["boost_clock"] }} GHz
+        </p>
+
+        <p>
+            <strong>Socket:</strong>
+            {{ result_cb["components"]["CPU"]["socket_no"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            {{ result_cb["components"]["CPU"]["price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- GPU -->
+
+    <article class="component-card">
+
+        <h3>GPU</h3>
+
+        <p class="component-name">
+            {{ result_cb["components"]["GPU"]["gpu name"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_cb["components"]["GPU"]["brand"] }}
+        </p>
+
+        <p>
+            <strong>VRAM:</strong>
+            {{ result_cb["components"]["GPU"][" vram"] }}
+        </p>
+
+        <p>
+            <strong>Memory Bus:</strong>
+            {{ result_cb["components"]["GPU"]["Memory Bus"] }}
+        </p>
+
+        <p>
+            <strong>GPU TDP:</strong>
+            {{ result_cb["components"]["GPU"]["gpu tdp"] }}
+        </p>
+
+        <p>
+            <strong>PCIe Version:</strong>
+            {{ result_cb["components"]["GPU"]["pcie version"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_cb["components"]["GPU"]["gpu price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- Motherboard -->
+
+    <article class="component-card">
+
+        <h3>Mother Board</h3>
+
+        <p class="component-name">
+            {{ result_cb["components"]["Mother Board"]["motherboard_name"] }}
+        </p>
+
+        <p>
+            <strong>Socket:</strong>
+            {{ result_cb["components"]["Mother Board"]["socket_no"] }}
+        </p>
+
+        <p>
+            <strong>Chipset:</strong>
+            {{ result_cb["components"]["Mother Board"]["chipset"] }}
+        </p>
+
+        <p>
+            <strong>PCIe Version:</strong>
+            {{ result_cb["components"]["Mother Board"]["pcie_version"] }}
+        </p>
+
+        <p>
+            <strong>RAM Type:</strong>
+            {{ result_cb["components"]["Mother Board"]["ram_type"] }}
+        </p>
+
+        <p>
+            <strong>Form Factor:</strong>
+            {{ result_cb["components"]["Mother Board"]["form_factor"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_cb["components"]["Mother Board"]["price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- CPU Cooler -->
+
+    <article class="component-card">
+
+        <h3>CPU Cooler</h3>
+
+        <p class="component-name">
+            {{ result_cb["components"]["Cooler"]["Cooler Name"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_cb["components"]["Cooler"]["Cooler Brand"] }}
+        </p>
+
+        <p>
+            <strong>Type:</strong>
+            {{ result_cb["components"]["Cooler"]["Cooler Type"] }}
+        </p>
+
+        <p>
+            <strong>Height:</strong>
+            {{ result_cb["components"]["Cooler"]["Cooler Height"] }}
+        </p>
+
+        <p>
+            <strong>Max Rated TDP:</strong>
+            {{ result_cb["components"]["Cooler"]["Max Rated TDP"] }}
+        </p>
+
+        <p>
+            <strong>Compatible Socket:</strong>
+            {{ result_cb["components"]["Cooler"]["Compatible Socket"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_cb["components"]["Cooler"]["Price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- PSU -->
+
+    <article class="component-card">
+
+        <h3>PSU</h3>
+
+        <p class="component-name">
+            {{ result_cb["components"]["PSU"]["Brand & Model"] }}
+        </p>
+
+        <p>
+            <strong>Wattage:</strong>
+            {{ result_cb["components"]["PSU"]["Wattage (W)"] }}W
+        </p>
+
+        <p>
+            <strong>Certification:</strong>
+            {{ result_cb["components"]["PSU"]["Certification"] }}
+        </p>
+
+        <p>
+            <strong>Modularity:</strong>
+            {{ result_cb["components"]["PSU"]["Modularity"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_cb["components"]["PSU"]["Approx Price (INR)"] }}
+        </p>
+
+    </article>
+
+
+    <!-- Storage -->
+
+    <article class="component-card">
+
+        <h3>Storage</h3>
+
+        <p class="component-name">
+            {{ result_cb["components"]["Storage"]["model_name"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_cb["components"]["Storage"]["company_brand"] }}
+        </p>
+
+        <p>
+            <strong>Type:</strong>
+            {{ result_cb["components"]["Storage"]["storage_type"] }}
+        </p>
+
+        <p>
+            <strong>Capacity:</strong>
+            {{ result_cb["components"]["Storage"]["storage_capacity"] }}
+        </p>
+
+        <p>
+            <strong>Read Speed:</strong>
+            {{ result_cb["components"]["Storage"]["read_speed_MBs"] }} MB/s
+        </p>
+
+        <p>
+            <strong>Write Speed:</strong>
+            {{ result_cb["components"]["Storage"]["write_speed_MBs"] }} MB/s
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_cb["components"]["Storage"]["price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- RAM -->
+
+    <article class="component-card">
+
+        <h3>RAM</h3>
+
+        <p class="component-name">
+            {{ result_cb["components"]["RAM"]["model_name"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_cb["components"]["RAM"]["company_brand"] }}
+        </p>
+
+        <p>
+            <strong>Generation:</strong>
+            {{ result_cb["components"]["RAM"]["ram_generation"] }}
+        </p>
+
+        <p>
+            <strong>Capacity:</strong>
+            {{ result_cb["components"]["RAM"]["capacity"] }}
+        </p>
+
+        <p>
+            <strong>Configuration:</strong>
+            {{ result_cb["components"]["RAM"]["kit_configuration"] }}
+        </p>
+
+        <p>
+            <strong>Speed:</strong>
+            {{ result_cb["components"]["RAM"]["boost_frequency_mhz"] }} MHz
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_cb["components"]["RAM"]["approx_price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- Cabinet -->
+
+    <article class="component-card">
+
+        <h3>Cabinet</h3>
+
+        <p class="component-name">
+            {{ result_cb["components"]["Cabinet"]["Cabinet Name"] }}
+        </p>
+
+        <p>
+            <strong>Brand:</strong>
+            {{ result_cb["components"]["Cabinet"]["Brand"] }}
+        </p>
+
+        <p>
+            <strong>Form Factor:</strong>
+            {{ result_cb["components"]["Cabinet"]["Cabinet Form Factor"] }}
+        </p>
+
+        <p>
+            <strong>Max GPU Length:</strong>
+            {{ result_cb["components"]["Cabinet"]["Max GPU Length"] }}
+        </p>
+
+        <p>
+            <strong>Max Cooler Height:</strong>
+            {{ result_cb["components"]["Cabinet"]["Max Cooler Height"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_cb["components"]["Cabinet"]["Price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- Monitor -->
+
+    <article class="component-card">
+
+        <h3>Monitor</h3>
+
+        <p class="component-name">
+            {{ result_cb["components"]["Monitor"]["Brand & Model"] }}
+        </p>
+
+        <p>
+            <strong>Resolution:</strong>
+            {{ result_cb["components"]["Monitor"]["Resolution"] }}
+        </p>
+
+        <p>
+            <strong>Refresh Rate:</strong>
+            {{ result_cb["components"]["Monitor"]["Refresh Rate"] }}
+        </p>
+
+        <p>
+            <strong>Screen Size:</strong>
+            {{ result_cb["components"]["Monitor"]["Screen Size"] }}
+        </p>
+
+        <p>
+            <strong>Response Time:</strong>
+            {{ result_cb["components"]["Monitor"]["Response Time"] }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            ₹{{ result_cb["components"]["Monitor"]["Approx Price"] }}
+        </p>
+
+    </article>
+
+
+    <!-- CatBoost Add to Cart -->
+
+    <div class="result-actions">
+
+        <form method="POST" action="{{ url_for('add_to_cart') }}">
+
+            <input type="hidden" name="cpu_id" value="{{ result_cb['components']['CPU']['cpu_id'] }}">
+
+            <input type="hidden" name="gpu_id" value="{{ result_cb['components']['GPU']['gpu id'] }}">
+
+            <input type="hidden" name="motherboard_id"
+                value="{{ result_cb['components']['Mother Board']['model_id'] }}">
+
+            <input type="hidden" name="cooler_id" value="{{ result_cb['components']['Cooler']['Cooler ID'] }}">
+
+            <input type="hidden" name="psu_id" value="{{ result_cb['components']['PSU']['PSU ID'] }}">
+
+            <input type="hidden" name="storage_id" value="{{ result_cb['components']['Storage']['storage_id'] }}">
+
+            <input type="hidden" name="ram_id" value="{{ result_cb['components']['RAM']['ram_id'] }}">
+
+            <input type="hidden" name="cabinet_id" value="{{ result_cb['components']['Cabinet']['Cabinet ID'] }}">
+
+            <input type="hidden" name="monitor_id" value="{{ result_cb['components']['Monitor']['Monitor ID'] }}">
+
+            <input type="hidden" name="total_price" value="{{ result_cb['total_price'] }}">
+
+            <button type="submit" class="add-to-cart-button">
+                🛒 Add CatBoost Build to Cart
+            </button>
+
+        </form>
+
+
+        <!-- Build Again -->
+
+        <div class="build-again">
+
+            <a href="{{ url_for('recommendation') }}">
+                🔄 Modify Search & Build Again
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}RigBuilder — Build Your Custom PC{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <p class="hero-eyebrow">INTELLIGENT HARDWARE SELECTION</p>
+        <h1>Build Your Perfect PC <span>Without The Hassle.</span></h1>
+        <p class="hero-description">
+            Get personalized, balanced PC component recommendations optimized specifically for your budget, workflow, and gaming performance preferences.
+        </p>
+        <div class="hero-actions">
+            <a href="{{ url_for('recommendation') }}" class="hero-button">
+                Start Building Now
+                <span class="button-arrow" aria-hidden="true">→</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+        <div class="hero-visual-orbit hero-orbit-one"></div>
+        <div class="hero-visual-orbit hero-orbit-two"></div>
+        
+        <div class="hero-visual-card-main">
+            <span class="visual-label">SYSTEM COMPATIBILITY CHECK</span>
+            <div class="visual-component">
+                <span class="visual-component-name">Processor (CPU)</span>
+                <span class="visual-component-status">Compatible</span>
+            </div>
+            <div class="visual-component">
+                <span class="visual-component-name">Graphics Card</span>
+                <span class="visual-component-status">Optimal</span>
+            </div>
+            <div class="visual-component">
+                <span class="visual-component-name">Power Supply</span>
+                <span class="visual-component-status">Sufficient</span>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

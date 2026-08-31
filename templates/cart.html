@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}
+My Cart - RigBuilder
+{% endblock %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+
+    {% if messages %}
+
+        {% for category, message in messages %}
+
+            <div class="flash-message {{ category }}">
+                {{ message }}
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+{% endwith %}
+
+
+<section class="cart-page">
+
+    <div class="cart-header">
+        <h1>My PC Builds</h1>
+        <p>Your saved PC builds are shown below.</p>
+    </div>
+
+
+    {% if builds %}
+
+        <div class="cart-builds">
+
+            {% for build in builds %}
+
+                <div class="cart-card">
+
+                    <h2>Saved PC Build</h2>
+
+                    <p class="cart-price-label">
+                        Total Build Price
+                    </p>
+
+                    <p class="cart-price">
+                        ₹{{ "{:,}".format(build.cart.total_price) }}
+                    </p>
+
+
+                    <div class="cart-components">
+
+                        <!-- CPU -->
+                        {% if build.cpu %}
+                        <p>
+                            <strong>CPU:</strong>
+                            {{ build.cpu.cpu_model }}
+                        </p>
+                        {% endif %}
+
+
+                        <!-- GPU -->
+                        {% if build.gpu %}
+                        <p>
+                            <strong>GPU:</strong>
+                            {{ build.gpu.gpu_name }}
+                        </p>
+                        {% endif %}
+
+
+                        <!-- Motherboard -->
+                        {% if build.motherboard %}
+                        <p>
+                            <strong>Motherboard:</strong>
+                            {{ build.motherboard.motherboard_name }}
+                        </p>
+                        {% endif %}
+
+
+                        <!-- CPU Cooler -->
+                        {% if build.cooler %}
+                        <p>
+                            <strong>CPU Cooler:</strong>
+                            {{ build.cooler.cooler_name }}
+                        </p>
+                        {% endif %}
+
+
+                        <!-- PSU -->
+                        {% if build.psu %}
+                        <p>
+                            <strong>PSU:</strong>
+                            {{ build.psu.brand_model }}
+                        </p>
+                        {% endif %}
+
+
+                        <!-- Storage -->
+                        {% if build.storage %}
+                        <p>
+                            <strong>Storage:</strong>
+                            {{ build.storage.model_name }}
+                        </p>
+                        {% endif %}
+
+
+                        <!-- RAM -->
+                        {% if build.ram %}
+                        <p>
+                            <strong>RAM:</strong>
+                            {{ build.ram.model_name }}
+                        </p>
+                        {% endif %}
+
+
+                        <!-- Cabinet -->
+                        {% if build.cabinet %}
+                        <p>
+                            <strong>Cabinet:</strong>
+                            {{ build.cabinet.cabinet_name }}
+                        </p>
+                        {% endif %}
+
+
+                        <!-- Monitor -->
+                        {% if build.monitor %}
+                        <p>
+                            <strong>Monitor:</strong>
+                            {{ build.monitor.brand_model }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+
+                    <!-- Place Order -->
+                    <form
+                        method="POST"
+                        action="{{ url_for('place_order', cart_id=build.cart.id) }}">
+                        <button type="submit" class="place-order-button">
+                            📦 Place to Order
+                        </button>
+                    </form>
+
+                    <!-- Remove Build -->
+                    <form
+                        method="POST"
+                        action="{{ url_for('remove_from_cart', cart_id=build.cart.id) }}">
+                        <button type="submit" class="remove-build-button">
+                            ❌ Remove Build
+                        </button>
+                    </form>
+                </div>
+
+            {% endfor %}
+        </div>
+
+    {% else %}
+
+        <div class="empty-cart">
+            <h2>Your cart is empty 🛒</h2>
+            <p>Build your perfect PC and save it here.</p>
+            <a href="{{ url_for('recommendation') }}">
+                Build My PC
+            </a>
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}
