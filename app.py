@@ -18,23 +18,12 @@ HF_REPO_ID = "mohammedjunaidkhan/rigbuilder-models"
 
 
 # Download models from Hugging Face
-cat_model_path = hf_hub_download(
-    repo_id=HF_REPO_ID,
-    filename="cat_model.pkl"
-)
-
-# random_forest_model_path = hf_hub_download(
-#     repo_id=HF_REPO_ID,
-#     filename="random_forest_model.pkl"
-# )
+cat_model_path = hf_hub_download(repo_id=HF_REPO_ID, filename="cat_model.pkl")
 
 # Load ML models
 cat_model = joblib.load(cat_model_path)
 # random_forest_model = joblib.load(random_forest_model_path)
 
-# LOAD ML MODELS
-# cat_model = joblib.load(os.path.join(MODEL_DIR, "cat_model.pkl"))
-# random_forest_model = joblib.load(os.path.join(MODEL_DIR, "random_forest_model.pkl"))
 
 # LOAD PREPROCESSING FILES
 feature_columns = joblib.load(os.path.join(MODEL_DIR, "feature_columns.pkl"))
@@ -53,10 +42,34 @@ cabinet_df = pd.read_excel(os.path.join(DATASET_DIR, "rigbuilder_cabinet.xlsx"))
 monitor_df = pd.read_excel(os.path.join(DATASET_DIR, "rigbuilder_monitor.xlsx"))
 
 datasets = [cpu_df, gpu_df, mobo_df, cooler_df, psu_df, storage_df, ram_df, cabinet_df, monitor_df]
-for df in datasets:
-    df.columns = df.columns.str.strip()
+for df in datasets:df.columns = df.columns.str.strip()
 
-categorical_cols = ["usage_scenario", "colour_theme", "monitor_resolution", "build_type", "upgrade_path"]
+
+# RAM type format fix (DDR-4 -> DDR4)
+mobo_df['ram_type'] = mobo_df['ram_type'].replace({
+    'DDR-3': 'DDR3', 'DDR-4': 'DDR4', 'DDR-5': 'DDR5'})
+
+# Socket format consistent karo (space hatao, uppercase)
+mobo_df['socket_no'] = mobo_df['socket_no'].astype(str).str.replace(' ', '', regex=False).str.upper()
+cpu_df['socket_no'] = cpu_df['socket_no'].astype(str).str.replace(' ', '', regex=False).str.upper()
+ram_df['mobo_socket_compatibility'] = ram_df['mobo_socket_compatibility'].astype(str).str.replace(' ', '', regex=False).str.upper()
+cooler_df['Compatible Socket'] = cooler_df['Compatible Socket'].astype(str).str.replace(' ', '', regex=False).str.upper()
+
+# ID columns se whitespace hatao (component lookup ke liye)
+cpu_df['cpu_id'] = cpu_df['cpu_id'].astype(str).str.strip()
+gpu_df['gpu id'] = gpu_df['gpu id'].astype(str).str.strip()
+mobo_df['model_id'] = mobo_df['model_id'].astype(str).str.strip()
+cooler_df['Cooler ID'] = cooler_df['Cooler ID'].astype(str).str.strip()
+psu_df['PSU ID'] = psu_df['PSU ID'].astype(str).str.strip()
+storage_df['storage_id'] = storage_df['storage_id'].astype(str).str.strip()
+ram_df['ram_id'] = ram_df['ram_id'].astype(str).str.strip()
+cabinet_df['Cabinet ID'] = cabinet_df['Cabinet ID'].astype(str).str.strip()
+monitor_df['Monitor ID'] = monitor_df['Monitor ID'].astype(str).str.strip()
+
+
+categorical_cols = ["usage_scenario", "colour_theme", "monitor_resolution","upgrade_path"]
+
+
 # Component ID columns
 components_id_col_name = {
     "CPU": "cpu_id",
@@ -83,7 +96,6 @@ target_columns = [
 
 # Price columns
 price_columns = {
-    
     "GPU": "gpu price",
     "Mother Board": "price",
     "Cooler": "Price",
@@ -91,8 +103,7 @@ price_columns = {
     "Storage": "price",
     "RAM": "approx_price",
     "Cabinet": "Price",
-    "Monitor": "Price",
-}
+    "Monitor": "Price",}
 
 # Component DataFrames
 component_dataframes = {
@@ -106,180 +117,279 @@ component_dataframes = {
     "Cabinet": cabinet_df,
     "Monitor": monitor_df}
 
-def preprocess_user_input( 
-    budget, 
-    used_parts, 
-    usage_scenario, 
-    colour_theme, 
-    monitor_required, 
-    monitor_size, 
-    monitor_resolution, 
-    build_type, 
-    upgrade_path): 
- 
-    user_input = pd.DataFrame([{ 
-        "budget": budget, 
-        "used_parts": used_parts, 
-        "usage_scenario": usage_scenario, 
-        "colour_theme": colour_theme, 
-        "monitor_required": monitor_required, 
-        "monitor_size": monitor_size, 
-        "monitor_resolution": monitor_resolution, 
-        "build_type": build_type, 
-        "upgrade_path": upgrade_path}]) 
- 
-    encoded_data = ohe.transform( 
-        user_input[categorical_cols]) 
- 
-    encoded_df = pd.DataFrame( 
-        encoded_data, 
-        columns=ohe.get_feature_names_out(categorical_cols)) 
-    user_input = user_input.drop(columns=categorical_cols) 
-    user_input = pd.concat([user_input, encoded_df], axis=1) 
+
+
+
+### **1. User input preprocessing**
+def preprocess_user_input(budget,
+                        used_parts,
+                        usage_scenario,
+                        colour_theme,
+                        monitor_required,
+                        monitor_size,
+                        monitor_resolution,
+                        # build_type,
+                        upgrade_path):
+
+    user_input = pd.DataFrame([{
+        "budget": budget,
+        "used_parts": used_parts,
+        "usage_scenario": usage_scenario,
+        "colour_theme": colour_theme,
+        "monitor_required": monitor_required,
+        "monitor_size": monitor_size,
+        "monitor_resolution": monitor_resolution,
+        # "build_type": build_type,
+        "upgrade_path": upgrade_path}])
+
+    encoded_data = ohe.transform(
+        user_input[categorical_cols])
+
+    encoded_df = pd.DataFrame(
+        encoded_data,
+        columns=ohe.get_feature_names_out(categorical_cols))
+
+    user_input = user_input.drop(columns=categorical_cols)
+
+    user_input = pd.concat([user_input, encoded_df], axis=1)
+
     return user_input
 
- 
-def get_compatible_chipsets(compatible_socket): 
-    if pd.isna(compatible_socket): 
-        return [] 
- 
-    return re.findall(r'\b[A-Z]\d{3}\b', str(compatible_socket)) 
- 
-def check_cpu_mobo(cpu, mobo): 
- 
-    cpu_socket = str( 
-        cpu["socket_no"]).strip() 
- 
-    mobo_socket = str( 
-        mobo["socket_no"]).strip() 
- 
-    # Socket check 
-    if cpu_socket != mobo_socket: 
-        return False 
- 
-    # Chipset check 
-    compatible_chipsets = get_compatible_chipsets( 
-        cpu["compatible_socket"]) 
- 
-    mobo_chipset = str( 
-        mobo["chipset"]).strip() 
-    return mobo_chipset in compatible_chipsets 
- 
- 
-def check_ram_mobo(ram, mobo): 
-    ram_generation = str( 
-        ram["ram_generation"] 
-    ).strip().upper() 
-    mobo_ram_type = str( 
-        mobo["ram_type"] 
-    ).strip().upper() 
- 
-    ram_compatible_sockets = [ 
-        socket.strip().upper() 
-        for socket in str(ram["mobo_socket_compatibility"]).split("/")] 
-    mobo_socket = str(mobo["socket_no"]).strip().upper() 
-    if ram_generation != mobo_ram_type: 
-        return False 
-    if mobo_socket not in ram_compatible_sockets: 
-        return False 
-    return True 
- 
- 
-def check_gpu_psu(gpu, psu): 
-    gpu_required = int( 
-        str(gpu["psu required"]).replace("W", "").strip()) 
-    psu_wattage = float(psu["Wattage (W)"]) 
-    return psu_wattage >= gpu_required 
- 
- 
-def check_gpu_cabinet(gpu, cabinet): 
-    gpu_length = float( 
-        str(gpu["gpu length"]).replace("mm", "").strip()) 
-    max_gpu_length = float( 
-        str(cabinet["Max GPU Length"]).replace("mm", "").strip()) 
-    return gpu_length <= max_gpu_length 
- 
-def get_watt(value): return float( str(value) .replace("W", "") .strip()) 
- 
-def check_cpu_cooler(cpu, cooler): 
-    cpu_socket = str(cpu["socket_no"]).strip().upper() 
-    compatible_sockets = [ 
-        socket.strip().upper() 
-        for socket in str( 
-            cooler["Compatible Socket"]).split(",")] 
-    cpu_tdp = get_watt(cpu["tdp_wattage"]) 
-    cooler_tdp = get_watt(cooler["Max Rated TDP"]) 
-    socket_ok = (cpu_socket in compatible_sockets) 
 
-    tdp_ok = ( 
-        cpu_tdp <= cooler_tdp) 
-    return socket_ok and tdp_ok 
- 
-# def get_mm(value): 
-#     return float(str(value).replace("mm", "").strip()) 
+
+ ### **compatibility Text**
+def get_compatible_chipsets(compatible_socket):
+    if pd.isna(compatible_socket):return []
+    return re.findall(r'\b[A-Z]\d{3}\b', str(compatible_socket))
+
+
+def check_cpu_mobo(cpu, mobo):
+    cpu_socket = str(cpu["socket_no"]).strip().upper()
+    mobo_socket = str(mobo["socket_no"]).strip().upper()
+
+    # Sirf socket match karo — compatible_socket column corrupt hai (Excel references leak hue hain)
+    return cpu_socket == mobo_socket
+
+
+def check_ram_mobo(ram, mobo):
+
+    ram_generation = str(ram["ram_generation"]).strip().upper()
+
+    mobo_ram_type = str(mobo["ram_type"]).strip().upper()
+
+    ram_compatible_sockets = [
+        socket.strip().upper()
+        for socket in str(ram["mobo_socket_compatibility"]).split("/")]
+
+    mobo_socket = str(mobo["socket_no"]).strip().upper()
+
+    if ram_generation != mobo_ram_type:
+        return False
+
+    if mobo_socket not in ram_compatible_sockets:
+        return False
+
+    return True
+
+
+def check_gpu_psu(gpu, psu):
+    gpu_required = int(str(gpu["psu required"]).replace("W", "").strip())
+    psu_wattage = float(psu["Wattage (W)"])
+    return psu_wattage >= gpu_required
+
+
+def check_gpu_cabinet(gpu, cabinet):
+
+    gpu_length = float(str(gpu["gpu length"]).replace("mm", "").strip())
+    max_gpu_length = float(str(cabinet["Max GPU Length"]).replace("mm", "").strip())
+
+    return gpu_length <= max_gpu_length
+
+
+def get_watt(value):
+    match = re.search(r'\d+(\.\d+)?', str(value))
+    if match:
+        return float(match.group())
+    return float('inf')
+
+
+def check_cpu_cooler(cpu, cooler):
+
+    cpu_socket = str(cpu["socket_no"]).strip().upper()
+
+    compatible_sockets = [
+        socket.strip().upper()
+        for socket in str(cooler["Compatible Socket"]).split(",")]
+
+    cpu_tdp = get_watt(cpu["tdp_wattage"])
+    cooler_tdp = get_watt(cooler["Max Rated TDP"])
+    socket_ok = (cpu_socket in compatible_sockets)
+    tdp_ok = (cpu_tdp <= cooler_tdp)
+    return socket_ok and tdp_ok
+
+
 def get_mm(value):
     match = re.search(r'\d+(\.\d+)?', str(value))
     if match:
         return float(match.group())
     return None
+
+
+def check_cooler_cabinet(cooler, cabinet):
+
+    cooler_height = get_mm(cooler["Cooler Height"])
+    max_cooler_height = get_mm(cabinet["Max Cooler Height"])
+    return cooler_height <= max_cooler_height
+
  
-def check_cooler_cabinet(cooler, cabinet): 
-    cooler_height = get_mm(cooler["Cooler Height"]) 
-    max_cooler_height = get_mm(cabinet["Max Cooler Height"]) 
-    return cooler_height <= max_cooler_height 
- 
- 
+
+
+### **check compatibility**
 #new
 def check_compatibility(build):
 
     results = {
-        "CPU ↔ Motherboard": check_cpu_mobo(
-            build["CPU"],
-            build["Mother Board"]),
+        "CPU ↔ Motherboard": check_cpu_mobo(build["CPU"], build["Mother Board"]),
+        "RAM ↔ Motherboard": check_ram_mobo(build["RAM"], build["Mother Board"]),
+        "GPU ↔ PSU": check_gpu_psu(build["GPU"], build["PSU"]),
+        "GPU ↔ Cabinet": check_gpu_cabinet(build["GPU"], build["Cabinet"]),
+        "CPU ↔ Cooler": check_cpu_cooler(build["CPU"], build["Cooler"]),
+        "Cooler ↔ Cabinet": check_cooler_cabinet(build["Cooler"], build["Cabinet"])}
 
-        "RAM ↔ Motherboard": check_ram_mobo(
-            build["RAM"],
-            build["Mother Board"]),
-
-        "GPU ↔ PSU": check_gpu_psu(
-            build["GPU"],
-            build["PSU"]),
-
-        "GPU ↔ Cabinet": check_gpu_cabinet(
-            build["GPU"],
-            build["Cabinet"]),
-
-        "CPU ↔ Cooler": check_cpu_cooler(
-            build["CPU"],
-            build["Cooler"]),
-
-        "Cooler ↔ Cabinet": check_cooler_cabinet(
-            build["Cooler"],
-            build["Cabinet"])}
     return results
 
 #new
 def is_build_compatible(compatibility_results):
     return all(compatibility_results.values())
 
+
+
+
+### **Find Compatible Component**
+# new
+def find_compatible_mobos(cpu, mobo_df):
+    compatible = []
+    for _, mobo in mobo_df.iterrows():
+        if check_cpu_mobo(cpu, mobo):
+            compatible.append(mobo)
+    return compatible
+
+
+def find_compatible_rams(mobo, ram_df):
+    compatible = []
+    for _, ram in ram_df.iterrows():
+        if check_ram_mobo(ram, mobo):
+            compatible.append(ram)
+    return compatible
+
+
+def find_compatible_coolers(cpu, cooler_df):
+    compatible = []
+    for _, cooler in cooler_df.iterrows():
+        if check_cpu_cooler(cpu, cooler):
+            compatible.append(cooler)
+    return compatible
+
+
+def find_compatible_psus(gpu, psu_df):
+    compatible = []
+    for _, psu in psu_df.iterrows():
+        if check_gpu_psu(gpu, psu):
+            compatible.append(psu)
+    return compatible
+
+
+def find_compatible_cabinets(gpu, cooler, cabinet_df):
+    compatible = []
+    for _, cabinet in cabinet_df.iterrows():
+        if check_gpu_cabinet(gpu, cabinet) and check_cooler_cabinet(cooler, cabinet):
+            compatible.append(cabinet)
+    return compatible
+
+
+def pick_closest_by_price(candidates, target_price, price_col):
+    if not candidates:
+        return None
+
+    def price_diff(item):
+        price = pd.to_numeric(item[price_col], errors="coerce")
+        if pd.isna(price):
+            return float("inf")
+        return abs(price - target_price)
+
+    return min(candidates, key=price_diff)
+
+
+### **Resolve Compatible Build**
+def resolve_compatible_build(cpu, gpu, budget, component_dataframes, price_columns):
+    build = {"CPU": cpu, "GPU": gpu}
+
+    mobo_candidates = find_compatible_mobos(cpu, component_dataframes["Mother Board"])
+    if not mobo_candidates:
+        raise ValueError(f"No compatible motherboard found for CPU {cpu.get('cpu_id')}")
+
+    # Motherboards ko price-closeness ke hisaab se sort karo
+    target_mobo_price = budget * 0.15
+    mobo_candidates.sort(
+        key=lambda m: abs(pd.to_numeric(m[price_columns["Mother Board"]], errors="coerce") - target_mobo_price)
+        if pd.notna(pd.to_numeric(m[price_columns["Mother Board"]], errors="coerce")) else float("inf"))
+
+    # Har motherboard try karo jab tak RAM na mile
+    selected_mobo = None
+    selected_ram = None
+    for mobo in mobo_candidates:
+        ram_candidates = find_compatible_rams(mobo, component_dataframes["RAM"])
+        if ram_candidates:
+            selected_mobo = mobo
+            selected_ram = pick_closest_by_price(ram_candidates, budget * 0.1, price_columns["RAM"])
+            break
+
+    if selected_mobo is None:
+        raise ValueError("Koi bhi compatible motherboard RAM ke saath nahi mila")
+
+    build["Mother Board"] = selected_mobo
+    build["RAM"] = selected_ram
+
+    # Cooler
+    cooler_candidates = find_compatible_coolers(cpu, component_dataframes["Cooler"])
+    if not cooler_candidates:
+        raise ValueError("No compatible cooler found for CPU")
+    build["Cooler"] = pick_closest_by_price(cooler_candidates, budget * 0.05, price_columns["Cooler"])
+
+    # PSU
+    psu_candidates = find_compatible_psus(gpu, component_dataframes["PSU"])
+    if not psu_candidates:
+        raise ValueError("No compatible PSU found for GPU")
+    build["PSU"] = pick_closest_by_price(psu_candidates, budget * 0.1, price_columns["PSU"])
+
+    # Cabinet
+    cabinet_candidates = find_compatible_cabinets(gpu, build["Cooler"], component_dataframes["Cabinet"])
+    if not cabinet_candidates:
+        raise ValueError("No compatible cabinet found for GPU + Cooler combo")
+    build["Cabinet"] = pick_closest_by_price(cabinet_candidates, budget * 0.05, price_columns["Cabinet"])
+
+    return build
+
+
+
+
+### **Get Compatibility Summary**
 def get_compatibility_summary(compatibility_results):
 
-    issues = [
-        component
-        for component, result
-        in compatibility_results.items()
-        if not result]
+    issues = [component for component, result in compatibility_results.items() if not result]
 
-    return {
-        "is_compatible": len(issues) == 0,
-        "issues": issues}
+    return {"is_compatible": len(issues) == 0,
+            "issues": issues}
 
+
+### **2. Model prediction**
 def predict_components(user_input, model):
     prediction = model.predict(user_input)
     prediction = np.squeeze(prediction)
     return prediction
 
 
+### **3. Encoded predictions ko actual IDs mein decode karna**
 def decode_predictions(prediction):
     decoded_prediction = {}
     for col, encoded_value in zip(target_columns, prediction):
@@ -288,6 +398,7 @@ def decode_predictions(prediction):
     return decoded_prediction
 
 
+### **4. Actual component lookup**
 def get_component(df, column_name, component_id):
     result = df[df[column_name] == component_id]
     if result.empty:
@@ -295,9 +406,10 @@ def get_component(df, column_name, component_id):
     return result.iloc[0]
 
 
-def get_component_details(decoded_prediction):
 
+def get_component_details(decoded_prediction):
     build = {}
+
     for component_name, df in component_dataframes.items():
 
         target_column = {
@@ -323,6 +435,7 @@ def get_component_details(decoded_prediction):
     return build
 
 
+### **5. Price calculation**
 def calculate_build_price(build):
 
     price_columns = {
@@ -335,6 +448,7 @@ def calculate_build_price(build):
         "RAM": "approx_price",
         "Cabinet": "Price",
         "Monitor": "Approx Price"}
+
     total = 0
 
     for component, item in build.items():
@@ -350,6 +464,7 @@ def calculate_build_price(build):
     return total
 
 
+### **6. Final recommendation function**
 def recommend_pc(
     budget,
     used_parts,
@@ -358,8 +473,8 @@ def recommend_pc(
     monitor_required,
     monitor_size,
     monitor_resolution,
-    build_type,
-    upgrade_path, model):
+    upgrade_path,
+    model):
 
     # 1. Prepare user input
     user_input = preprocess_user_input(
@@ -370,8 +485,8 @@ def recommend_pc(
         monitor_required,
         monitor_size,
         monitor_resolution,
-        build_type,
         upgrade_path)
+
 
     # 2. Predict component classes
     prediction = predict_components(user_input, model)
@@ -382,7 +497,23 @@ def recommend_pc(
 
 
     # 4. Component IDs → actual component rows
-    build = get_component_details(decoded_prediction)
+    # build = get_component_details(decoded_prediction)
+    # new
+        # 4. CPU & GPU seedha ML prediction se lo (anchors)
+    cpu = get_component(cpu_df, "cpu_id", decoded_prediction["cpu"])
+    gpu = get_component(gpu_df, "gpu id", decoded_prediction["gpu"])
+
+    # 4a. Baaki components resolver se guaranteed-compatible milenge
+    build = resolve_compatible_build(cpu, gpu, budget, component_dataframes, price_columns)
+
+    # 4b. Storage/Monitor pe hard compatibility rule nahi hai, ML se hi lo
+    # 4b. Storage pe hard compatibility rule nahi hai, ML se hi lo
+    build["Storage"] = get_component(storage_df, "storage_id", decoded_prediction["storage"])
+
+    # Monitor sirf tab lo jab user ko monitor chahiye ho
+    if monitor_required == 1:
+        build["Monitor"] = get_component(monitor_df, "Monitor ID", decoded_prediction["monitor"])
+    else:build["Monitor"] = None
 
 
     # 6. Compatibility validation
@@ -392,8 +523,7 @@ def recommend_pc(
     summary = get_compatibility_summary(compatibility) #new
 
     # 5. Calculate total price
-    total_price = calculate_build_price(build
-)
+    total_price = calculate_build_price(build)
 
     return {
         "components": build,
@@ -401,7 +531,8 @@ def recommend_pc(
         "compatibility": compatibility,
         "build_compatible": build_compatible, #new
         "issues": summary["issues"] #new
-    }
+}
+
 
 
 
@@ -422,11 +553,8 @@ db = SQLAlchemy(app)
 # User Model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-
     name = db.Column(db.String(100), nullable=False)
-
     email = db.Column(db.String(120), unique=True, nullable=False)
-
     password = db.Column(db.String(255), nullable=False)
 
 
@@ -685,10 +813,7 @@ class Order(db.Model):
     cabinet_id = db.Column(db.String(50))
     monitor_id = db.Column(db.String(50))
 
-    total_price = db.Column(
-        db.Integer,
-        nullable=False
-    )
+    total_price = db.Column(db.Integer, nullable=False)
 
 
 
@@ -740,9 +865,7 @@ def login():
 
 @app.route("/logout")
 def logout():
-
     session.clear()
-
     return redirect(url_for("home"))
 
 
@@ -759,14 +882,12 @@ def signup():
         confirm_password = request.form["confirm_password"]
 
         # Check password
-        if password != confirm_password:
-            return "Passwords do not match"
+        if password != confirm_password:return "Passwords do not match"
 
         # Check existing email
         existing_user = User.query.filter_by(email=email).first()
 
-        if existing_user:
-            return "Email already registered"
+        if existing_user:return "Email already registered"
 
         # Hash password
         hashed_password = generate_password_hash(password)
@@ -796,8 +917,6 @@ def recommendation():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
-    result = None
-    result_rf = None
     result_cb = None
 
     if request.method == "POST":
@@ -806,10 +925,15 @@ def recommendation():
         used_parts = request.form.get("used_parts")
         usage_scenario = request.form.get("usage_scenario")
         colour_theme = request.form.get("colour_theme")
-        monitor_required = request.form.get("monitor_required")
-        monitor_size = request.form.get("monitor_size")
-        monitor_resolution = request.form.get("monitor_resolution")
-        build_type = request.form.get("build_type")
+        monitor_required = int(request.form.get("monitor_required"))
+        if monitor_required == 1:
+            monitor_size = float(request.form.get("monitor_size"))
+            monitor_resolution = request.form.get("monitor_resolution")
+        else:
+            monitor_size = 0
+            monitor_resolution = "none"  # ya jo bhi tumhare dataset mein "no monitor" ke liye placeholder value hai
+
+        # build_type = request.form.get("build_type")
         upgrade_path = request.form.get("upgrade_path")
 
 
@@ -818,32 +942,6 @@ def recommendation():
         used_parts = int(used_parts)
         monitor_required = int(monitor_required)
         monitor_size = float(monitor_size)
-
-
-        # Get PC recommendation
-        # result = recommend_pc(
-        #     budget=budget,
-        #     used_parts=used_parts,
-        #     usage_scenario=usage_scenario,
-        #     colour_theme=colour_theme,
-        #     monitor_required=monitor_required,
-        #     monitor_size=monitor_size,
-        #     monitor_resolution=monitor_resolution,
-        #     build_type=build_type,
-        #     upgrade_path=upgrade_path,
-        #     model=cat_model
-        # )
-        # result_rf = recommend_pc(
-        #     budget=budget,
-        #     used_parts=used_parts,
-        #     usage_scenario=usage_scenario,
-        #     colour_theme=colour_theme,
-        #     monitor_required=monitor_required,
-        #     monitor_size=monitor_size,
-        #     monitor_resolution=monitor_resolution,
-        #     build_type=build_type,
-        #     upgrade_path=upgrade_path, model=random_forest_model)
-
         
         result_cb = recommend_pc(
             budget=budget,
@@ -853,31 +951,16 @@ def recommendation():
             monitor_required=monitor_required,
             monitor_size=monitor_size,
             monitor_resolution=monitor_resolution,
-            build_type=build_type,
             upgrade_path=upgrade_path, model=cat_model)
 
-       
-
         # Add budget information
-        # result_rf["user_budget"] = budget
-        # result_rf["remaining_budget"] = (
-        #     budget - int(result_rf["total_price"])
-        # )
         result_cb["user_budget"] = budget
         result_cb["remaining_budget"] = (
             budget - int(result_cb["total_price"]))
 
-
-        print("\nRANDOM FOREST RESULT:")
-        # print(result_rf)
-
         print("\nCATBOOST RESULT:")
-        # print(result_cb)
+        print(result_cb)
 
-        print("\nRECOMMENDATION RESULT:")
-        # print(result)
-
-    # return render_template("recommendation.html", result=result)
     return render_template("recommendation.html", result_cb=result_cb)
 
 
@@ -891,11 +974,11 @@ def add_to_cart():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
+    
     # Create cart record
     cart_item = Cart(
 
         user_id=session.get("user_id"),
-
         cpu_id=request.form.get("cpu_id"),
         gpu_id=request.form.get("gpu_id"),
         motherboard_id=request.form.get("motherboard_id"),
@@ -905,10 +988,10 @@ def add_to_cart():
         ram_id=request.form.get("ram_id"),
         cabinet_id=request.form.get("cabinet_id"),
         monitor_id=request.form.get("monitor_id"),
-
         total_price=int(request.form.get("total_price")))
+
+    print(f"All component: \n{cart_item}")
     
-    # Save to database
     db.session.add(cart_item)
     db.session.commit()
     return redirect(url_for("cart"))
@@ -935,10 +1018,9 @@ def cart():
         ram = RAM.query.filter_by(ram_id=item.ram_id).first()
         cabinet = Cabinet.query.filter_by(cabinet_id=item.cabinet_id).first()
         monitor = Monitor.query.filter_by(monitor_id=item.monitor_id).first()
-
+        print(cpu)
         build = {
             "cart": item,
-
             "cpu": cpu,
             "gpu": gpu,
             "motherboard": motherboard,
@@ -948,8 +1030,9 @@ def cart():
             "ram": ram,
             "cabinet": cabinet,
             "monitor": monitor}
-
         builds.append(build)
+
+    print(f"All user build: \n{builds}")
 
     return render_template("cart.html", builds=builds)
 
@@ -973,7 +1056,6 @@ def remove_from_cart(cart_id):
     if not cart_item:
         return redirect(url_for("cart"))
 
-    # Delete the build
     db.session.delete(cart_item)
     db.session.commit()
 
@@ -986,7 +1068,6 @@ def remove_from_cart(cart_id):
 @app.route("/place-order/<int:cart_id>", methods=["POST"])
 def place_order(cart_id):
 
-    # User must be logged in
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
@@ -1015,11 +1096,8 @@ def place_order(cart_id):
         monitor_id=cart_item.monitor_id,
         total_price=cart_item.total_price)
 
-    # Save order
     db.session.add(order)
-    # Remove from cart after placing order
     db.session.delete(cart_item)
-    # Save changes
     db.session.commit()
 
     flash("Order has been placed successfully!", "success")
@@ -1032,44 +1110,6 @@ def place_order(cart_id):
 @app.route("/about")
 def about():
     return render_template("about.html")
-
-
-
-
-# database se data retrieve karna verify 
-@app.route("/test-build")
-def test_build():
-    cpus = CPU.query.limit(5).all()
-    result = []
-    for cpu in cpus:
-        result.append({
-            "id": cpu.cpu_id,
-            "model": cpu.cpu_model,
-            "price": cpu.price,
-            "tier": cpu.cpu_tier})
-    return result
-
-
-
-@app.route("/build")
-def build():
-    budget = 5000
-    cpus = CPU.query.filter(
-    CPU.price <= budget
-    ).order_by(
-    CPU.cpu_tier.desc()
-    ).all()
-    result = []
-    for cpu in cpus:
-        result.append({
-            "id": cpu.cpu_id,
-            "model": cpu.cpu_model,
-            "price": cpu.price,
-            "tier": cpu.cpu_tier})
-    return result
-
-
-
 
 
 

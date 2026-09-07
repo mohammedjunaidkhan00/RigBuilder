@@ -19,185 +19,313 @@
     </div>
 
 
+
+
+Builder form updated · HTML
     <!-- Recommendation Form -->
     <form class="builder-form" method="POST" action="{{ url_for('recommendation') }}">
-
+ 
         <!-- Budget -->
         <div class="form-group">
-
+ 
             <label for="budget">
                 Budget (₹)
             </label>
-
+ 
             <input type="number" id="budget" name="budget" placeholder="e.g. 50000" min="10000" step="500" required>
-
+ 
         </div>
-
-
+ 
+ 
         <!-- Used Parts -->
         <div class="form-group">
-
+ 
             <label for="used_parts">
                 Are you okay with used parts?
             </label>
-
+ 
             <select id="used_parts" name="used_parts">
-
+ 
                 <option value="1">
                     Yes, include verified used parts
                 </option>
-
+ 
                 <option value="0" selected>
                     No, only brand new parts
                 </option>
-
+ 
             </select>
-
+ 
         </div>
-
-
+ 
+ 
         <!-- Usage Scenario -->
         <div class="form-group">
-
+ 
             <label for="usage_scenario">
                 Primary Use Case
             </label>
-
-            <select id="usage_scenario" name="usage_scenario">
-
-                <option value="High-End Gaming + Mid Workstation">
+ 
+            <select id="usage_scenario" name="usage_scenario" required>
+ 
+                <option value="Entry Gaming + Office Usage">
+                    Entry Gaming + Office Usage
+                </option>
+ 
+                <option value="Budget Gaming + Office Usage">
+                    Budget Gaming + Office Usage
+                </option>
+ 
+                <option value="Mid-Tier Gaming + Office Work">
+                    Mid-Tier Gaming + Office Work
+                </option>
+ 
+                <option value="Mid-Tier Gaming + Workstation">
+                    Mid-Tier Gaming + Workstation
+                </option>
+ 
+                <option value="High-End Gaming + Workstation">
                     High-End Gaming + Workstation
                 </option>
-
+ 
+                <option value="High-End Gaming + Mid Workstation">
+                    High-End Gaming + Mid Workstation
+                </option>
+ 
+                <option value="Ultra Gaming + Workstation">
+                    Ultra Gaming + Workstation
+                </option>
+ 
             </select>
-
+ 
         </div>
-
-
+ 
+ 
         <!-- Colour Theme -->
         <div class="form-group">
-
+ 
             <label for="colour_theme">
                 Preferred Theme Color
             </label>
-
-            <select id="colour_theme" name="colour_theme">
-
+ 
+            <select id="colour_theme" name="colour_theme" required>
+ 
                 <option value="none">
                     No Preference
                 </option>
-
+ 
                 <option value="black">
                     Black
                 </option>
-
+ 
+                <option value="white">
+                    White
+                </option>
+ 
+                <option value="stealth">
+                    Stealth
+                </option>
+ 
+                <option value="All Black">
+                    All Black
+                </option>
+ 
+                <option value="All White">
+                    All White
+                </option>
+ 
+                <option value="Black Stealth">
+                    Black Stealth
+                </option>
+ 
+                <option value="Stealth Black">
+                    Stealth Black
+                </option>
+ 
+                <option value="White Stealth">
+                    White Stealth
+                </option>
+ 
+                <option value="Dark Grey">
+                    Dark Grey
+                </option>
+ 
+                <option value="Black/Red">
+                    Black / Red
+                </option>
+ 
+                <option value="Black/Blue">
+                    Black / Blue
+                </option>
+ 
+                <option value="Black/White">
+                    Black / White
+                </option>
+ 
+                <option value="Black/Silver">
+                    Black / Silver
+                </option>
+ 
+                <option value="Black/Grey">
+                    Black / Grey
+                </option>
+ 
+                <option value="Black/RGB">
+                    Black / RGB
+                </option>
+ 
+                <option value="White/Black">
+                    White / Black
+                </option>
+ 
+                <option value="White/Blue">
+                    White / Blue
+                </option>
+ 
+                <option value="Dual-Tone">
+                    Dual-Tone
+                </option>
+ 
+                <option value="Dual Chamber Glass">
+                    Dual Chamber Glass (RGB)
+                </option>
+ 
+                <option value="RGB">
+                    RGB
+                </option>
+ 
             </select>
-
+ 
         </div>
-
-
+ 
+ 
         <!-- Monitor Required -->
         <div class="form-group">
-
+ 
             <label for="monitor_required">
                 Do you need a monitor included?
             </label>
-
-            <select id="monitor_required" name="monitor_required">
-
-                <option value="1">
-                    Yes
-                </option>
-
+ 
+            <select id="monitor_required" name="monitor_required" onchange="toggleMonitorFields()">
+                <option value="1">Yes</option>
+                <option value="0">No, I have my own monitor</option>
             </select>
-
+ 
         </div>
-
-
-        <!-- Monitor Size -->
-        <div class="form-group">
-
-            <label for="monitor_size">
-                Monitor Size (Inches)
-            </label>
-
-            <select id="monitor_size" name="monitor_size">
-
-                <option value="19">
-                    19 inch
-                </option>
-
-            </select>
-
+ 
+ 
+        <!-- Monitor Fields Wrapper (JS se show/hide hoga, grid tootne nahi dega) -->
+        <div id="monitor-fields-wrapper" style="display: contents;">
+ 
+            <!-- Monitor Size -->
+            <div class="form-group">
+                <label for="monitor_size">Monitor Size (Inches)</label>
+                <select id="monitor_size" name="monitor_size">
+                    <option value="19">19 inch</option>
+                    <option value="20">20 inch</option>
+                    <option value="22">22 inch</option>
+                    <option value="24" selected>24 inch</option>
+                    <option value="27">27 inch</option>
+                    <option value="28">28 inch</option>
+                    <option value="31">31 inch</option>
+                    <option value="32">32 inch</option>
+                    <option value="34">34 inch (Ultrawide)</option>
+                    <option value="38">38 inch (Ultrawide)</option>
+                    <option value="49">49 inch (Super Ultrawide)</option>
+                </select>
+            </div>
+ 
+            <!-- Monitor Resolution -->
+            <div class="form-group">
+                <label for="monitor_resolution">Monitor Resolution</label>
+                <select id="monitor_resolution" name="monitor_resolution">
+                    <option value="FHD">FHD (1920x1080)</option>
+                    <option value="QHD">QHD (2560x1440)</option>
+                    <option value="4K">4K (3840x2160)</option>
+                    <option value="UW-QHD">UW-QHD (Ultrawide 3440x1440)</option>
+                </select>
+            </div>
+ 
         </div>
-
-
-        <!-- Monitor Resolution -->
-        <div class="form-group">
-
-            <label for="monitor_resolution">
-                Monitor Resolution
-            </label>
-
-            <select id="monitor_resolution" name="monitor_resolution">
-
-                <option value="4K">
-                    4K
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <!-- Build Type -->
-        <div class="form-group">
-
-            <label for="build_type">
-                Build Type Preference
-            </label>
-
-            <select id="build_type" name="build_type">
-
-                <option value="normal" selected>
-                    Standard
-                </option>
-
-            </select>
-
-        </div>
-
-
+ 
+ 
         <!-- Upgrade Path -->
         <div class="form-group">
-
+ 
             <label for="upgrade_path">
                 Future Upgrade Priority
             </label>
-
+ 
             <select id="upgrade_path" name="upgrade_path">
-
+ 
+                <option value="Small">
+                    Low Priority
+                </option>
+ 
                 <option value="medium" selected>
                     Medium Priority
                 </option>
-
+ 
+                <option value="Medium-High">
+                    Medium-High Priority
+                </option>
+ 
+                <option value="High">
+                    High Priority
+                </option>
+ 
             </select>
-
+ 
         </div>
-
-
+ 
+ 
         <!-- Submit Button -->
         <div class="builder-submit">
-
+ 
             <button type="submit">
                 Recommend My PC
             </button>
-
+ 
         </div>
-
+ 
     </form>
-
+ 
+    <script>
+        function toggleMonitorFields() {
+            const monitorRequired = document.getElementById('monitor_required').value;
+            const wrapper = document.getElementById('monitor-fields-wrapper');
+ 
+            wrapper.style.display = (monitorRequired === "1") ? "contents" : "none";
+        }
+ 
+        document.addEventListener("DOMContentLoaded", toggleMonitorFields);
+    </script>
+ 
 </section>
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 <!-- {% if result_rf and result_cb %}
@@ -269,8 +397,8 @@
     </div>
 
 
+    
     <!-- CPU -->
-
     <article class="component-card">
 
         <h3>CPU</h3>
@@ -317,8 +445,8 @@
     </article>
 
 
-    <!-- GPU -->
 
+    <!-- GPU -->
     <article class="component-card">
 
         <h3>GPU</h3>
@@ -360,8 +488,8 @@
     </article>
 
 
-    <!-- Motherboard -->
 
+    <!-- Motherboard -->
     <article class="component-card">
 
         <h3>Mother Board</h3>
@@ -403,8 +531,8 @@
     </article>
 
 
-    <!-- CPU Cooler -->
 
+    <!-- CPU Cooler -->
     <article class="component-card">
 
         <h3>CPU Cooler</h3>
@@ -446,8 +574,8 @@
     </article>
 
 
-    <!-- PSU -->
 
+    <!-- PSU -->
     <article class="component-card">
 
         <h3>PSU</h3>
@@ -479,8 +607,8 @@
     </article>
 
 
-    <!-- Storage -->
 
+    <!-- Storage -->
     <article class="component-card">
 
         <h3>Storage</h3>
@@ -523,7 +651,6 @@
 
 
     <!-- RAM -->
-
     <article class="component-card">
 
         <h3>RAM</h3>
@@ -603,8 +730,8 @@
     </article>
 
 
-    <!-- Monitor -->
-
+    <!-- Monitor (sirf tab dikhega jab monitor build mein shamil ho) -->
+    {% if result_cb["components"].get("Monitor") is not none %}
     <article class="component-card">
 
         <h3>Monitor</h3>
@@ -639,6 +766,7 @@
         </p>
 
     </article>
+    {% endif %}
 
 
     <!-- CatBoost Add to Cart -->
@@ -664,7 +792,8 @@
 
             <input type="hidden" name="cabinet_id" value="{{ result_cb['components']['Cabinet']['Cabinet ID'] }}">
 
-            <input type="hidden" name="monitor_id" value="{{ result_cb['components']['Monitor']['Monitor ID'] }}">
+            <input type="hidden" name="monitor_id"
+                value="{{ result_cb['components']['Monitor']['Monitor ID'] if result_cb['components'].get('Monitor') is not none else '' }}">
 
             <input type="hidden" name="total_price" value="{{ result_cb['total_price'] }}">
 
