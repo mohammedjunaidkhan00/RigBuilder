@@ -21,7 +21,7 @@
 
 
 
-Builder form updated · HTML
+<!-- Builder form updated · HTML -->
     <!-- Recommendation Form -->
     <form class="builder-form" method="POST" action="{{ url_for('recommendation') }}">
  
@@ -400,8 +400,9 @@ Builder form updated · HTML
     
     <!-- CPU -->
     <article class="component-card">
-
         <h3>CPU</h3>
+
+        <img src="{{ url_for('static', filename='images/cpu.jpg') }}" alt="CPU" class="component-image">
 
         <p class="component-name">
             {{ result_cb["components"]["CPU"]["cpu_model"] }}
@@ -451,6 +452,8 @@ Builder form updated · HTML
 
         <h3>GPU</h3>
 
+        <img src="{{ url_for('static', filename='images/gpu.webp') }}" alt="CPU" class="component-image">
+
         <p class="component-name">
             {{ result_cb["components"]["GPU"]["gpu name"] }}
         </p>
@@ -493,6 +496,8 @@ Builder form updated · HTML
     <article class="component-card">
 
         <h3>Mother Board</h3>
+
+        <img src="{{ url_for('static', filename='images/mobo.webp') }}" alt="CPU" class="component-image">
 
         <p class="component-name">
             {{ result_cb["components"]["Mother Board"]["motherboard_name"] }}
@@ -537,6 +542,8 @@ Builder form updated · HTML
 
         <h3>CPU Cooler</h3>
 
+        <img src="{{ url_for('static', filename='images/cpucool.jpg') }}" alt="CPU" class="component-image">
+
         <p class="component-name">
             {{ result_cb["components"]["Cooler"]["Cooler Name"] }}
         </p>
@@ -580,6 +587,8 @@ Builder form updated · HTML
 
         <h3>PSU</h3>
 
+        <img src="{{ url_for('static', filename='images/psu.webp') }}" alt="CPU" class="component-image">
+
         <p class="component-name">
             {{ result_cb["components"]["PSU"]["Brand & Model"] }}
         </p>
@@ -612,6 +621,8 @@ Builder form updated · HTML
     <article class="component-card">
 
         <h3>Storage</h3>
+
+        <img src="{{ url_for('static', filename='images/Storage.webp') }}" alt="CPU" class="component-image">
 
         <p class="component-name">
             {{ result_cb["components"]["Storage"]["model_name"] }}
@@ -654,6 +665,8 @@ Builder form updated · HTML
     <article class="component-card">
 
         <h3>RAM</h3>
+
+        <img src="{{ url_for('static', filename='images/ram.webp') }}" alt="CPU" class="component-image">
 
         <p class="component-name">
             {{ result_cb["components"]["RAM"]["model_name"] }}
@@ -698,6 +711,8 @@ Builder form updated · HTML
 
         <h3>Cabinet</h3>
 
+        <img src="{{ url_for('static', filename='images/cabinet.webp') }}" alt="CPU" class="component-image">
+
         <p class="component-name">
             {{ result_cb["components"]["Cabinet"]["Cabinet Name"] }}
         </p>
@@ -735,6 +750,8 @@ Builder form updated · HTML
     <article class="component-card">
 
         <h3>Monitor</h3>
+
+        <img src="{{ url_for('static', filename='images/moniter.webp') }}" alt="CPU" class="component-image">
 
         <p class="component-name">
             {{ result_cb["components"]["Monitor"]["Brand & Model"] }}
