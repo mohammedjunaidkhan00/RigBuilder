@@ -8,6 +8,8 @@
     <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/recommendetion_style.css') }}"> -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cart_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_style.css') }}">
+
 </head>
 <body>
 
@@ -33,12 +35,12 @@
             
                 {% if session.get("user_id") %}
                     <div class="user-menu">
-                        <span class="username">
+                        <a href="{{ url_for('profile') }}" class="username">
                             <span class="user-icon" aria-hidden="true">👤</span>
                             {{ session.get("user_name") }}
-                        </span>
+                        </a>
                         <a  href="{{ url_for('cart') }}">🛒 View Cart</a>
-                        <a href="{{ url_for('logout') }}" class="nav-action nav-logout">Logout</a>
+                        <!-- <a href="{{ url_for('logout') }}" class="nav-action nav-logout">Logout</a> -->
                     </div>
 
 

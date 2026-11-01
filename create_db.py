@@ -13,8 +13,8 @@ from app import app, db, CPU, GPU, Motherboard, CPUCooler, PSU, Storage, RAM, Ca
 
 
  
-# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# DATASET_DIR = os.path.join(BASE_DIR, "dataset")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATASET_DIR = os.path.join(BASE_DIR, "dataset")
  
  
 # with app.app_context():
@@ -59,16 +59,16 @@ with app.app_context():
     cpu_df.columns = cpu_df.columns.str.strip()
     cpu_df['cpu_id'] = cpu_df['cpu_id'].astype(str).str.strip()
     cpu_df['socket_no'] = cpu_df['socket_no'].astype(str).str.strip()
-
-
+    
     cpu_df['price'] = pd.to_numeric(cpu_df['price'], errors='coerce')
-
     cpu_df = cpu_df.dropna(subset=['price'])
     cpu_df.reset_index(drop=True, inplace=True)
-
-    # print("CPU rows after removing invalid price rows:", cpu_df.shape)
-
-
+    
+    # cores column se sirf number nikaalo (jaise "24 (8P+16E)" -> 24)
+    cpu_df['cores'] = cpu_df['cores'].astype(str).str.extract(r'(\d+)')[0].astype(float)
+    
+    # print("CPU rows after cleaning:", cpu_df.shape)
+    
     for _, row in cpu_df.iterrows():
         db.session.add(CPU(
             cpu_id=row["cpu_id"],
@@ -90,8 +90,8 @@ with app.app_context():
             price=row.get("price"),
         ))
     db.session.commit()
-    print(f"CPU table seeded. Rows: {len(cpu_df)}")
-
+    print(f"1 CPU table seeded. Rows: {len(cpu_df)}")
+    
 
     # ============================================
     # STEP 3: Motherboard
@@ -108,15 +108,15 @@ with app.app_context():
             socket_no=row.get("socket_no"),
             chipset=row.get("chipset"),
             pcie_version=row.get("pcie_version"),
-            vrm_count=row.get("vrm_count"),
-            vrm_amperage=row.get("vrm_amperage"),
+            vrm_count=str(row.get("vrm_count")),
+            vrm_amperage=str(row.get("vrm_amperage")),
             wireless_connectivity=row.get("wireless_connectivity"),
             ram_type=row.get("ram_type"),
             form_factor=row.get("form_factor"),
             price=row.get("price"),
         ))
     db.session.commit()
-    print(f"Motherboard table seeded. Rows: {len(mobo_df)}")
+    print(f"2 Motherboard table seeded. Rows: {len(mobo_df)}")
 
 
     # ============================================
@@ -129,27 +129,29 @@ with app.app_context():
     for _, row in gpu_df.iterrows():
         db.session.add(GPU(
             gpu_id=row["gpu id"],
-            gpu_name=row.get("gpu name"),
+            gpu_name=str(row.get("gpu name")),
             cuda_cores=row.get("cuda cores"),
             gpu_tdp=str(row.get("gpu tdp")),
             tensor_cores=row.get("tensor cores"),
             rt_cores=row.get("rt cores"),
-            vram=row.get("vram"),
-            memory_bus=row.get("Memory Bus"),
-            manufacturer_name=row.get("manufacturer name"),
-            brand=row.get("brand"),
+            vram=str(row.get("vram")),
+            memory_bus=str(row.get("Memory Bus")),
+            manufacturer_name=str(row.get("manufacturer name")),
+            brand=str(row.get("brand")),
             gpu_length=str(row.get("gpu length")),
-            gpu_width=row.get("gpu width"),
+            gpu_width=str(row.get("gpu width")),
             psu_required=str(row.get("psu required")),
-            power_cable=row.get("power cable"),
-            psu_type=row.get("psu type"),
-            pcie_version=row.get("pcie version"),
-            gpu_cooler=row.get("gpu cooler"),
+            power_cable=str(row.get("power cable")),
+            psu_type=str(row.get("psu type")),
+            pcie_version=str(row.get("pcie version")),
+            gpu_cooler=str(row.get("gpu cooler")),
             gpu_price=row.get("gpu price"),
             gpu_tier=row.get("gpu tier"),
         ))
+
     db.session.commit()
-    print(f"GPU table seeded. Rows: {len(gpu_df)}")
+    print(f"3 GPU table seeded. Rows: {len(gpu_df)}")
+
 
 
     # ============================================
@@ -162,21 +164,22 @@ with app.app_context():
     for _, row in cooler_df.iterrows():
         db.session.add(CPUCooler(
             cooler_id=row["Cooler ID"],
-            cooler_brand=row.get("Cooler Brand"),
-            cooler_name=row.get("Cooler Name"),
-            cooler_type=row.get("Cooler Type"),
+            cooler_brand=str(row.get("Cooler Brand")),
+            cooler_name=str(row.get("Cooler Name")),
+            cooler_type=str(row.get("Cooler Type")),
             cooler_height=str(row.get("Cooler Height")),
             fan_max_rpm=str(row.get("Fan Max RPM")),
             max_rated_tdp=str(row.get("Max Rated TDP")),
             aio_length=str(row.get("AIO Length")),
-            fans_included=row.get("Fans Included"),
-            lighting_type=row.get("Lighting Type"),
-            aio_cooler_display=row.get("AIO/Cooler Display"),
-            compatible_socket=row.get("Compatible Socket"),
+            fans_included=str(row.get("Fans Included")),
+            lighting_type=str(row.get("Lighting Type")),
+            aio_cooler_display=str(row.get("AIO/Cooler Display")),
+            compatible_socket=str(row.get("Compatible Socket")),
             price=row.get("Price"),
         ))
+
     db.session.commit()
-    print(f"CPU Cooler table seeded. Rows: {len(cooler_df)}")
+    print(f"4 CPU Cooler table seeded. Rows: {len(cooler_df)}")
 
 
     # ============================================
@@ -202,10 +205,10 @@ with app.app_context():
         ))
 
     db.session.commit()
-    print(f"PSU table seeded. Rows: {len(psu_df)}")
+    print(f"5 PSU table seeded. Rows: {len(psu_df)}")
 
 
-    # ============================================
+        # ============================================
     # STEP 7: Storage
     # ============================================
     storage_df = pd.read_excel(os.path.join(DATASET_DIR, "rigbuilder_storage.xlsx"))
@@ -215,22 +218,23 @@ with app.app_context():
     for _, row in storage_df.iterrows():
         db.session.add(Storage(
             storage_id=row["storage_id"],
-            company_brand=row.get("company_brand"),
-            model_name=row.get("model_name"),
-            storage_type=row.get("storage_type"),
-            form_factor=row.get("form_factor"),
-            interface=row.get("interface"),
-            storage_capacity=row.get("storage_capacity"),
+            company_brand=str(row.get("company_brand")),
+            model_name=str(row.get("model_name")),
+            storage_type=str(row.get("storage_type")),
+            form_factor=str(row.get("form_factor")),
+            interface=str(row.get("interface")),
+            storage_capacity=str(row.get("storage_capacity")),
             read_speed_MBs=row.get("read_speed_MBs"),
             write_speed_MBs=row.get("write_speed_MBs"),
-            heatsink=row.get("heatsink"),
-            dram_cache=row.get("dram_cache"),
-            endurance_tbw=row.get("endurance_tbw"),
-            warranty_period=row.get("warranty_period"),
+            heatsink=str(row.get("heatsink")),
+            dram_cache=str(row.get("dram_cache")),
+            endurance_tbw=str(row.get("endurance_tbw")),
+            warranty_period=str(row.get("warranty_period")),
             price=row.get("price"),
         ))
+
     db.session.commit()
-    print(f"Storage table seeded. Rows: {len(storage_df)}")
+    print(f"6 Storage table seeded. Rows: {len(storage_df)}")
 
 
     # ============================================
@@ -261,7 +265,7 @@ with app.app_context():
         ))
 
     db.session.commit()
-    print(f"RAM table seeded. Rows: {len(ram_df)}")
+    print(f"7 RAM table seeded. Rows: {len(ram_df)}")
 
 
     # ============================================
@@ -290,7 +294,7 @@ with app.app_context():
             price=row.get("Price"),
         ))
     db.session.commit()
-    print(f"Cabinet table seeded. Rows: {len(cabinet_df)}")
+    print(f"8 Cabinet table seeded. Rows: {len(cabinet_df)}")
 
 
     # ============================================
@@ -314,6 +318,6 @@ with app.app_context():
             price=row.get("Approx Price"),
         ))
     db.session.commit()
-    print(f"Monitor table seeded. Rows: {len(monitor_df)}")
+    print(f"9 Monitor table seeded. Rows: {len(monitor_df)}")
 
     print("\n✅ All tables cleared and reseeded successfully!")

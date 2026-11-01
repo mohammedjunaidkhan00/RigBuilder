@@ -7,7 +7,8 @@ import joblib
 import re
 import numpy as np
 import pandas as pd
-
+from dotenv import load_dotenv
+load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
@@ -541,9 +542,9 @@ app = Flask(__name__)
 app.secret_key = "rigbuilder-secret-key"
 
 
-
 # Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///rigbuilder.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+    "DATABASE_URL", "sqlite:///rigbuilder.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Create database object
@@ -662,8 +663,8 @@ class RAM(db.Model):
     cas_latency_cl = db.Column(db.String(50))
     mobo_socket_compatibility = db.Column(db.String(200))
     overclock_profile = db.Column(db.String(100))
-    heatsink_available = db.Column(db.String(20))
-    rgb_lighting = db.Column(db.String(20))
+    heatsink_available = db.Column(db.String(100))
+    rgb_lighting = db.Column(db.String(100))
     module_height_mm = db.Column(db.Float)
     approx_price = db.Column(db.Integer)
     good_for_use_case = db.Column(db.Text)
@@ -990,7 +991,7 @@ def add_to_cart():
         monitor_id=request.form.get("monitor_id"),
         total_price=int(request.form.get("total_price")))
 
-    print(f"All component: \n{cart_item}")
+    # print(f"All component: \n{cart_item}")
     
     db.session.add(cart_item)
     db.session.commit()
@@ -1032,7 +1033,7 @@ def cart():
             "monitor": monitor}
         builds.append(build)
 
-    print(f"All user build: \n{builds}")
+    # print(f"All user build: \n{builds}")
 
     return render_template("cart.html", builds=builds)
 
@@ -1065,6 +1066,7 @@ def remove_from_cart(cart_id):
 
 
 
+# Order
 @app.route("/place-order/<int:cart_id>", methods=["POST"])
 def place_order(cart_id):
 
@@ -1102,6 +1104,27 @@ def place_order(cart_id):
 
     flash("Order has been placed successfully!", "success")
     return redirect(url_for("cart"))
+
+
+
+# Profile
+@app.route("/profile")
+def profile():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    user = User.query.get(session.get("user_id"))
+
+    # Optional: stats bhi dikha sakte ho
+    total_builds = Cart.query.filter_by(user_id=user.id).count()
+    total_orders = Order.query.filter_by(user_id=user.id).count()
+
+    return render_template(
+        "profile.html",
+        user=user,
+        total_builds=total_builds,
+        total_orders=total_orders
+    )
 
 
 
