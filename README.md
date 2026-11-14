@@ -165,9 +165,3 @@ The application is deployed using Render.
 ## Author
 
 **Mohammed Junaid Khan**
-
-<br>
-
-## If You Like This Project
-
-Give the repository a ⭐ on GitHub!
